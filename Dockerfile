@@ -21,4 +21,7 @@ RUN cd $GOPATH/src/k8s.io/kubernetes \
 RUN cd $GOPATH/src/k8s.io/kubernetes \
 	&& cp _output/bin/kube-controller-manager /build \
 	&& cp _output/bin/kube-apiserver /build \
-	&& cp _output/bin/kube-scheduler /build
+	&& cp _output/bin/kube-scheduler /build \
+	&& strip /build/kube-apiserver \
+	&& strip /build/kube-scheduler \
+	&& strip /build/kube-controller-manager

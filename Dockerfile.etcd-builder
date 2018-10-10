@@ -12,4 +12,5 @@ RUN cd $GOPATH/src/github.com/coreos/etcd \
 	&& ./build
 
 RUN cd $GOPATH/src/github.com/coreos/etcd \
-	&& cp bin/etcd /build
+	&& cp bin/etcd /build \
+	&& strip /build/etcd
