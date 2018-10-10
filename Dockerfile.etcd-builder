@@ -1,0 +1,15 @@
+FROM golang:latest
+
+RUN mkdir -p /build
+
+RUN cd $GOPATH \
+	&& mkdir -p src/github.com/coreos/etcd \
+	&& cd src/github.com/coreos/etcd \
+	&& curl -L https://github.com/coreos/etcd/archive/v3.3.9.tar.gz | tar xz --strip-components=1 -C .
+
+RUN cd $GOPATH/src/github.com/coreos/etcd \
+	&& sed -e 's|GIT_SHA=.*|GIT_SHA=v3.3.9|' -i build \
+	&& ./build
+
+RUN cd $GOPATH/src/github.com/coreos/etcd \
+	&& cp bin/etcd /build

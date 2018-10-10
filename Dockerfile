@@ -1,8 +1,5 @@
 FROM golang:latest
 
-#RUN apk update && \
-#	apk upgrade && \
-#	apk add --no-cache --virtual .build-dependencies curl make bash rsync && \
 RUN mkdir -p /build
 
 RUN cd $GOPATH  && apt-get update && apt-get install rsync -y \
