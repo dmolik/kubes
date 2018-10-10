@@ -1,0 +1,4 @@
+FROM graytshirt/kubernetes-builder:latest AS builder
+
+FROM alpine:latest
+COPY --from=builder /build/kube-apiserver /
