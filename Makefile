@@ -11,6 +11,8 @@ HAPROXY_VERSION=$(shell cat VERSION|grep HAPROXY|sed -e 's/HAPROXY[\ \t]*=[\ \t]
 all: build etcd-build haproxy-build keepalived-build push
 
 version:
+	@echo "Pushing to Repo    = $(REPO)"
+	@echo
 	@echo "Kubernetes Version = $(KUBE_VERSION)"
 	@echo "Etcd Version       = $(ETCD_VERSION)"
 	@echo "Keepalived Version = $(KEEPALIVED_VERSION)"
