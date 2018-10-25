@@ -17,6 +17,13 @@ version:
 	@echo "Etcd Version       = $(ETCD_VERSION)"
 	@echo "Keepalived Version = $(KEEPALIVED_VERSION)"
 	@echo "Haproxy Version    = $(HAPROXY_VERSION)"
+	$(shell sed -i -e '/##\ VERSIONS/,$$d' README.md)
+	@echo "## VERSIONS" >> README.md
+	@echo >> README.md
+	@echo "  - Kubernetes: $(KUBE_VERSION)" >> README.md
+	@echo "  - Etcd:       $(ETCD_VERSION)" >> README.md
+	@echo "  - Keepalived: $(KEEPALIVED_VERSION)" >> README.md
+	@echo "  - Haproxy:    $(HAPROXY_VERSION)" >> README.md
 
 keepalived-build:
 	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
