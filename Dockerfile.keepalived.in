@@ -7,7 +7,7 @@ RUN apk update \
 		gcc make musl-dev curl json-c-dev openssl-dev linux-headers \
 		autoconf automake ipset-dev iptables-dev libnl3-dev libnfnetlink-dev \
 	&& mkdir /root/keepalived && cd /root/keepalived \
-	&& curl http://www.keepalived.org/software/keepalived-2.0.7.tar.gz | tar xz --strip-components=1 -C . \
+	&& curl http://www.keepalived.org/software/keepalived-@VERSION@.tar.gz | tar xz --strip-components=1 -C . \
 	&& sed -i '1s/^/#include\ <stdbool.h>\n/' keepalived/core/process.c \
 	&& autoreconf -i -f \
 	&& ./configure --prefix=/usr --sysconfdir=/etc --enable-sha1 --enable-json --enable-vrrp \

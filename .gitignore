@@ -1,2 +1,4 @@
-
+Dockerfile.haproxy
+Dockerfile.keepalived
+Dockerfile.etcd-builder
 Dockerfile
