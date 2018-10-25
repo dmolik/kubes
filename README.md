@@ -8,7 +8,5 @@ Just Run
 
 ## TODO
 
-  - Haproxy
-  - Keepalived
   - Frr (Migrate here and update)
   - Strongswan
