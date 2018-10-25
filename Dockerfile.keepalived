@@ -1,0 +1,23 @@
+FROM alpine:latest
+
+RUN apk update \
+	&& apk upgrade \
+	&& apk add json-c openssl ipset iptables libnl3 libnfnetlink \
+	&& apk add --no-cache --virtual .build-dependencies \
+		gcc make musl-dev curl json-c-dev openssl-dev linux-headers \
+		autoconf automake ipset-dev iptables-dev libnl3-dev libnfnetlink-dev \
+	&& mkdir /root/keepalived && cd /root/keepalived \
+	&& curl http://www.keepalived.org/software/keepalived-2.0.7.tar.gz | tar xz --strip-components=1 -C . \
+	&& sed -i '1s/^/#include\ <stdbool.h>\n/' keepalived/core/process.c \
+	&& autoreconf -i -f \
+	&& ./configure --prefix=/usr --sysconfdir=/etc --enable-sha1 --enable-json --enable-vrrp \
+	&& make -j4 \
+	&& make DESTDIR=/root/keepalived-release install \
+	&& strip /root/keepalived-release/usr/sbin/keepalived \
+	&& apk del .build-dependencies \
+	&& rm -rf /root/keepalived-release/etc \
+	&& rm -rf /root/keepalived-release/usr/share \
+	&& rm -rf /root/keepalived-release/usr/doc \
+	&& cp -R /root/keepalived-release/* / \
+	&& rm -rf /var/cache/apk/* \
+	&& rm -rf /root/keepalived && rm -rf /root/keepalived-release
