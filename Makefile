@@ -1,6 +1,9 @@
 
 VERSION=$(shell cat VERSION)
-all: build etcd-build push
+all: build etcd-build haproxy-build push
+
+haproxy-build:
+	docker build . -f Dockerfile.haproxy -t graytshirt/haproxy:latest
 
 etcd-build:
 	docker build . -f Dockerfile.etcd-builder -t graytshirt/etcd-builder:latest
@@ -21,4 +24,4 @@ push:
 	docker push graytshirt/kube-proxy
 	docker push graytshirt/kube-controller-manager
 	docker push graytshirt/etcd
-
+	docker push graytshirt/haproxy
