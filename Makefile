@@ -17,7 +17,7 @@ version:
 	@echo "Etcd Version       = $(ETCD_VERSION)"
 	@echo "Keepalived Version = $(KEEPALIVED_VERSION)"
 	@echo "Haproxy Version    = $(HAPROXY_VERSION)"
-	$(shell sed -i -e '/##\ VERSIONS/,$$d' README.md)
+	$(shell sed -i '' -e '/##\ VERSIONS/,$$d' README.md )
 	@echo "## VERSIONS" >> README.md
 	@echo >> README.md
 	@echo "  - Kubernetes: $(KUBE_VERSION)" >> README.md
