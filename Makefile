@@ -27,30 +27,44 @@ version:
 
 keepalived-build:
 	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
-	docker build . -f Dockerfile.keepalived -t $(REPO)/keepalived:latest
+	docker build . -f Dockerfile.keepalived -t $(REPO)/keepalived:$(KEEPALIVED_VERSION)
 
 haproxy-build:
 	@sed -e s/@VERSION@/$(HAPROXY_VERSION)/ Dockerfile.haproxy.in > Dockerfile.haproxy
-	docker build . -f Dockerfile.haproxy -t $(REPO)/haproxy:latest
+	docker build . -f Dockerfile.haproxy -t $(REPO)/haproxy:$(HAPROXY_VERSION)
 
 etcd-build:
 	@sed -e s/@VERSION@/$(ETCD_VERSION)/ Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
 	docker build . -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest
-	docker build . -f Dockerfile.etcd -t $(REPO)/etcd:latest
+	docker build . -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION)
 
 build:
 	@sed -e s/@VERSION@/$(KUBE_VERSION)/ Dockerfile.in > Dockerfile
 	docker build . -t $(REPO)/kubernetes-builder:latest
-	docker build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:latest .
-	docker build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:latest .
-	docker build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:latest .
-	docker build -f Dockerfile.kube-proxy -t $(REPO)/kube-proxy:latest .
+	docker build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
+	docker build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
+	docker build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
+	docker build -f Dockerfile.kube-proxy -t $(REPO)/kube-proxy:$(KUBE_VERSION) .
 
 push:
-	docker push $(REPO)/kube-apiserver
-	docker push $(REPO)/kube-scheduler
-	docker push $(REPO)/kube-proxy
-	docker push $(REPO)/kube-controller-manager
-	docker push $(REPO)/etcd
-	docker push $(REPO)/haproxy
-	docker push $(REPO)/keepalived
+	docker push $(REPO)/kube-apiserver:$(KUBE_VERSION)
+	docker tag  $(REPO)/kube-apiserver:$(KUBE_VERSION) $(REPO)/kube-apiserver:latest
+	docker push $(REPO)/kube-apiserver:latest
+	docker push $(REPO)/kube-scheduler:$(KUBE_VERSION)
+	docker tag  $(REPO)/kube-scheduler:$(KUBE_VERSION) $(REPO)/kube-scheduler:latest
+	docker push $(REPO)/kube-scheduler:latest
+	docker push $(REPO)/kube-proxy:$(KUBE_VERSION)
+	docker tag  $(REPO)/kube-proxy:$(KUBE_VERSION) $(REPO)/kube-proxy:latest
+	docker push $(REPO)/kube-proxy:latest
+	docker push $(REPO)/kube-controller-manager:$(KUBE_VERSION)
+	docker tag  $(REPO)/kube-controller-manager:$(KUBE_VERSION) $(REPO)/kube-controller-manager:latest
+	docker push $(REPO)/kube-controller-manager:latest
+	docker push $(REPO)/etcd:$(ETCD_VERSION)
+	docker tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
+	docker push $(REPO)/etcd:latest
+	docker push $(REPO)/haproxy:$(HAPROXY_VERSION)
+	docker tag  $(REPO)/haproxy:$(HAPROXY_VERSION) $(REPO)/haproxy:latest
+	docker push $(REPO)/haproxy:latest
+	docker push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
+	docker tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
+	docker push $(REPO)/keepalived:latest
