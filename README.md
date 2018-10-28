@@ -8,7 +8,7 @@ Just Run
 
 ## VERSIONS
 
-  - Kubernetes: 1.12.1
+  - Kubernetes: 1.12.2
   - Etcd:       3.3.10
   - Keepalived: 2.0.8
   - Haproxy:    1.8.14

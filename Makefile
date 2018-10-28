@@ -8,7 +8,7 @@ HAPROXY_VERSION=$(shell cat VERSION|grep HAPROXY|sed -e 's/HAPROXY[\ \t]*=[\ \t]
 
 .PHONY: version
 
-all: build etcd-build haproxy-build keepalived-build push
+all: kube etcd haproxy keepalived
 
 version:
 	@echo "Pushing to Repo    = $(REPO)"
@@ -25,6 +25,11 @@ version:
 	@echo "  - Keepalived: $(KEEPALIVED_VERSION)" >> README.md
 	@echo "  - Haproxy:    $(HAPROXY_VERSION)" >> README.md
 
+kube: kube-build kube-push
+etcd: etcd-build etcd-push
+haproxy: haproxy-build haproxy-push
+keepalived: keepalived-build keepalived-push
+
 keepalived-build:
 	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
 	docker build . -f Dockerfile.keepalived -t $(REPO)/keepalived:$(KEEPALIVED_VERSION)
@@ -38,7 +43,7 @@ etcd-build:
 	docker build . -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest
 	docker build . -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION)
 
-build:
+kube-build:
 	@sed -e s/@VERSION@/$(KUBE_VERSION)/ Dockerfile.in > Dockerfile
 	docker build . -t $(REPO)/kubernetes-builder:latest
 	docker build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
@@ -46,7 +51,22 @@ build:
 	docker build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
 	docker build -f Dockerfile.kube-proxy -t $(REPO)/kube-proxy:$(KUBE_VERSION) .
 
-push:
+haproxy-push:
+	docker push $(REPO)/haproxy:$(HAPROXY_VERSION)
+	docker tag  $(REPO)/haproxy:$(HAPROXY_VERSION) $(REPO)/haproxy:latest
+	docker push $(REPO)/haproxy:latest
+
+keepalived-push:
+	docker push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
+	docker tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
+	docker push $(REPO)/keepalived:latest
+
+etcd-push:
+	docker push $(REPO)/etcd:$(ETCD_VERSION)
+	docker tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
+	docker push $(REPO)/etcd:latest
+
+kube-push:
 	docker push $(REPO)/kube-apiserver:$(KUBE_VERSION)
 	docker tag  $(REPO)/kube-apiserver:$(KUBE_VERSION) $(REPO)/kube-apiserver:latest
 	docker push $(REPO)/kube-apiserver:latest
@@ -59,12 +79,3 @@ push:
 	docker push $(REPO)/kube-controller-manager:$(KUBE_VERSION)
 	docker tag  $(REPO)/kube-controller-manager:$(KUBE_VERSION) $(REPO)/kube-controller-manager:latest
 	docker push $(REPO)/kube-controller-manager:latest
-	docker push $(REPO)/etcd:$(ETCD_VERSION)
-	docker tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
-	docker push $(REPO)/etcd:latest
-	docker push $(REPO)/haproxy:$(HAPROXY_VERSION)
-	docker tag  $(REPO)/haproxy:$(HAPROXY_VERSION) $(REPO)/haproxy:latest
-	docker push $(REPO)/haproxy:latest
-	docker push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
-	docker tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
-	docker push $(REPO)/keepalived:latest
