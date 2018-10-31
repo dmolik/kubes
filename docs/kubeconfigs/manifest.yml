@@ -1,0 +1,243 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: control-plane
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes
+    name: etc
+  containers:
+  - image: docker.io/graytshirt/kube-apiserver:1.12.2
+    name: kube-apiserver
+    command:
+    - /kube-apiserver
+    args:
+    - --etcd-servers=https://kubernetes.iag.d3fy.net:2379
+    - --etcd-cafile=/etc/kubernetes/certs/ca.chain.pem
+    - --etcd-certfile=/etc/kubernetes/certs/cert.fullchain.pem
+    - --etcd-keyfile=/etc/kubernetes/certs/cert.key.pem
+    - --tls-cert-file=/etc/kubernetes/certs/cert.fullchain.pem
+    - --tls-private-key-file=/etc/kubernetes/certs/cert.key.pem
+    - --kubelet-certificate-authority=/etc/kubernetes/certs/ca.chain.pem
+    - --kubelet-client-certificate=/etc/kubernetes/certs/cert.fullchain.pem
+    - --kubelet-client-key=/etc/kubernetes/certs/cert.key.pem
+    - --cert-dir=/etc/kubernetes/certs
+    - --cloud-provider=external
+    - --allow-privileged
+    - --enable-admission-plugins=Initializers,NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+    - --client-ca-file=/etc/kubernetes/certs/ca.chain.pem
+    - --external-hostname=[%= sys_fqdn %]
+    - --insecure-port=0
+    - --service-cluster-ip-range=10.12.64.0/18
+    - --bind-address=[%= net_eth0_0_addr.remove('\/\d+') %]
+    - --advertise-address=[%= net_eth0_0_addr.remove('\/\d+') %]
+    - --apiserver-count=3
+    - --endpoint-reconciler-type=master-count
+    - --authorization-mode=RBAC
+    - --requestheader-client-ca-file=/etc/kubernetes/certs/ca.chain.pem
+    - --requestheader-allowed-names=
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    #livenessProbe:
+    #  httpGet:
+    #    host: "[%= net_eth0_0_addr.remove('\/\d+') %]"
+    #    path: /healthz
+    #    port: 6443
+    #    scheme: HTTPS
+    #  initialDelaySeconds: 15
+    #  timeoutSeconds: 15
+    ports:
+    - containerPort: 6443
+      hostPort: 6443
+      name: https
+    volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: etc
+      readOnly: true
+  - name: kube-controller-manager
+    image: docker.io/graytshirt/kube-controller-manager:1.12.2
+    command:
+    - /kube-controller-manager
+    args:
+    - --kubeconfig=/etc/kubernetes/kubeconfig.yml
+    - --cluster-name=d3fy
+    - --tls-cert-file=/etc/kubernetes/certs/cert.fullchain.pem
+    - --tls-private-key-file=/etc/kubernetes/certs/cert.key.pem
+    - --cluster-signing-cert-file=/etc/kubernetes/certs/intermediate.cert.pem
+    - --cluster-signing-key-file=/etc/kubernetes/certs/intermediate.key.pem
+    - --root-ca-file=/etc/kubernetes/certs/ca.chain.pem
+    - --service-account-private-key-file=/etc/kubernetes/certs/cert.key.pem
+    - --cloud-provider=external
+    - --allocate-node-cidrs
+    - --cluster-cidr=10.12.128.0/17
+    - --service-cluster-ip-range=10.12.64.0/18
+    livenessProbe:
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10252
+        scheme: HTTP
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    ports:
+    - containerPort: 10252
+      hostport: 10252
+    volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: etc
+      readOnly: false
+  - name: kube-scheduler
+    image: docker.io/graytshirt/kube-scheduler:1.12.2
+    command:
+    - /kube-scheduler
+    args:
+    - --kubeconfig=/etc/kubernetes/kubeconfig.yml
+    livenessProbe:
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10251
+        scheme: HTTP
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    ports:
+    - containerPort: 10251
+      hostPort: 10251
+    volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: etc
+      readOnly: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etcd
+  namespace: kube-system
+spec:
+  containers:
+  - image: docker.io/graytshirt/etcd:3.3.10
+    command:
+    - /etcd
+    args:
+    - --name=[%= sys_fqdn %]
+    - --data-dir=/var/lib/etcd
+    - --trusted-ca-file=/etc/kubernetes/certs/ca.chain.pem
+    - --peer-trusted-ca-file=/etc/kubernetes/certs/ca.chain.pem
+    - --client-cert-auth
+    - --cert-file=/etc/kubernetes/certs/cert.fullchain.pem
+    - --key-file=/etc/kubernetes/certs/cert.key.pem
+    - --peer-cert-file=/etc/kubernetes/certs/cert.fullchain.pem
+    - --peer-key-file=/etc/kubernetes/certs/cert.key.pem
+    - --enable-v2=false
+    - --peer-auto-tls=false
+    - --initial-cluster-state=new
+    - --initial-cluster-token='d3fy-kube-etcd-cluster'
+    - --initial-cluster
+    - 'titan01.iag.d3fy.net=https://10.12.4.114:2380,titan02.iag.d3fy.net=https://10.12.4.175:2380,titan03.iag.d3fy.net=https://10.12.4.171:2380'
+    - --listen-peer-urls
+    - https://[%= net_eth0_0_addr.remove('\/\d+') -%]:2380
+    - --listen-client-urls
+    - http://127.0.0.1:2379,https://[%= net_eth0_0_addr.remove('\/\d+') -%]:2379
+    - --initial-advertise-peer-urls
+    - https://[%= sys_fqdn -%]:2380
+    - --advertise-client-urls
+    - http://127.0.0.1:2379,https://[%= net_eth0_0_addr.remove('\/\d+') -%]:2379,https://[%= sys_fqdn -%]:2379
+    #livenessProbe:
+    #  httpGet:
+    #    host: 127.0.0.1
+    #    path: /health
+    #    port: 2379
+    #  initialDelaySeconds: 5
+    #  timeoutSeconds: 15
+    name: etcd
+    ports:
+    - containerPort: 2380
+      hostPort: 2380
+      name: serverport
+    - containerPort: 2379
+      hostPort: 2379
+      name: clientport
+    resources:
+      requests:
+        cpu: 250m
+    volumeMounts:
+    - mountPath: /var/lib/etcd
+      name: lib
+      readOnly: false
+    - mountPath: /var/log/etcd/etcd.log
+      name: log
+      readOnly: false
+    - mountPath: /etc/kubernetes
+      name: etc
+      readOnly: true
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: /var/lib/etcd
+    name: lib
+  - hostPath:
+      path: /var/log/etcd/etcd.log
+      type: FileOrCreate
+    name: log
+  - hostPath:
+      path: /etc/kubernetes
+    name: etc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ha-lb
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: /etc/haproxy
+    name: etc-haproxy
+  - hostPath:
+      path: /etc/keepalived
+    name: etc-keepalived
+  - name: var-iptables
+    hostPath:
+      path: /var/lib/iptables
+  - name: xtables-lock
+    hostPath:
+      path: /run/xtables.lock
+      type: FileOrCreate
+  containers:
+  - name: haproxy
+    image: docker.io/graytshirt/haproxy:1.8.14
+    command: [ "/usr/sbin/haproxy" ]
+    args: [ "-db", "-f", "/etc/haproxy/haproxy.cfg" ]
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /etc/haproxy
+      name: etc-haproxy
+      readOnly: true
+  - name: keepalived
+    image: docker.io/graytshirt/keepalived:2.0.8
+    command:
+    - /usr/sbin/keepalived
+    args:
+    - --no-syslog
+    - --log-console
+    - --dont-fork
+    - --use-file=/etc/keepalived/keepalived.conf
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /etc/keepalived
+      name: etc-keepalived
+      readOnly: true
+    - mountPath: /var/lib/iptables
+      name: var-iptables
+      readOnly: false
+    - mountPath: /run/xtables.lock
+      name: xtables-lock
+      readOnly: false
