@@ -8,6 +8,8 @@ To build the containers run:
 
 See the docs for an [architectural overview](docs/)
 
+And the associated [Static Pod Manifests](docs/kubeconfigs/manifest.yml)
+
 ## VERSIONS
 
   - Kubernetes: 1.12.2
