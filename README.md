@@ -1,10 +1,12 @@
-# Docker Alpine Kubernetes
+# Containerized Highly Available Kubernetes
 
-Some quick and dirty container building for kubernetes contoller bits
+Best practices for Kubernetes deployments.
 
-Just Run
+To build the containers run:
 
-    make REPO="<docker id>/<private repo name>/Etc"
+    make REPO="$PRIVATE_REPO_URI"
+
+See the docs for an [architectural overview](docs/)
 
 ## VERSIONS
 
