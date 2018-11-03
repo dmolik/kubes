@@ -1,0 +1,26 @@
+FROM alpine:latest
+
+RUN apk update \
+	&& apk upgrade \
+	&& apk add json-c openssl ipset iptables libnl3 libnfnetlink \
+	&& apk add --no-cache --virtual .build-dependencies \
+		gcc make musl-dev curl json-c-dev openssl-dev linux-headers \
+		autoconf automake ipset-dev iptables-dev libnl3-dev libnfnetlink-dev \
+	&& mkdir /root/strongswan && cd /root/strongswan \
+	&& curl https://download.strongswan.org/strongswan-@VERSION@.tar.gz | tar xz --strip-components=1 -C . \
+	&& autoreconf -i -f \
+	\
+	&& ./configure --prefix=/usr --sysconfdir=/etc
+	\
+	&& make -j4 \
+	&& make DESTDIR=/root/strongswan-release install \
+	&& strip /root/strongswan-release/usr/sbin/strongswan \
+	&& apk del .build-dependencies \
+	&& rm -rf /root/strongswan-release/etc \
+	&& rm -rf /root/strongswan-release/usr/share \
+	&& rm -rf /root/strongswan-release/usr/doc \
+	&& cp -R /root/strongswan-release/* / \
+	&& rm -rf /var/cache/apk/* \
+	&& rm -rf /root/strongswan && rm -rf /root/strongswan-release
+
+# vi:syntax=dockerfile
