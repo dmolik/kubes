@@ -1,4 +1,4 @@
-FROM graytshirt/kubernetes-builder:latest AS builder
+FROM @REPO@/kubernetes-builder:latest AS builder
 
 FROM alpine:latest
 RUN apk add iptables ipset ipvsadm conntrack-tools

@@ -4,3 +4,8 @@ Dockerfile.etcd-builder
 Dockerfile.strongswan
 Dockerfile.frr
 Dockerfile
+Dockerfile.etcd
+Dockerfile.kube-apiserver
+Dockerfile.kube-controller-manager
+Dockerfile.kube-proxy
+Dockerfile.kube-scheduler

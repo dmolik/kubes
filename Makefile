@@ -57,12 +57,17 @@ haproxy-build:
 
 etcd-build:
 	@sed -e s/@VERSION@/$(ETCD_VERSION)/g Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.etcd.in  > Dockerfile.etcd
 	$(BUILDER) build -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest .
 	$(BUILDER) build -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION) .
 
 kube-build:
 	@sed -e s/@VERSION@/$(KUBE_VERSION)/g Dockerfile.in > Dockerfile
 	$(BUILDER) build -f Dockerfile -t $(REPO)/kubernetes-builder:latest .
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-controller-manager.in  > Dockerfile.kube-controller-manager
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-scheduler.in  > Dockerfile.kube-controller-manager
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-apiserver.in  > Dockerfile.kube-controller-manager
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-proxy.in  > Dockerfile.kube-controller-manager
 	$(BUILDER) build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
 	$(BUILDER) build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
 	$(BUILDER) build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
