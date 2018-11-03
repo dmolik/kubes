@@ -8,6 +8,7 @@ What you need to bring.
 
 ![Node Diagram](img/kube-node.png)
 
+A sample copy of a kube-proxy daemonset can be found [here](kubeconfigs/kube-proxy.yml)
 
 ## Data Flow
 
