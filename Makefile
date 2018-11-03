@@ -1,5 +1,6 @@
 
-REPO ?= graytshirt
+REPO    ?= graytshirt
+BUILDER ?= img
 
 KUBE_VERSION=$(shell cat VERSION|grep KUBERNETES|sed -e 's/KUBERNETES[\ \t]*=[\ \t]*//' )
 ETCD_VERSION=$(shell cat VERSION|grep ETCD|sed -e 's/ETCD[\ \t]*=[\ \t]*//')
@@ -32,50 +33,50 @@ keepalived: keepalived-build keepalived-push
 
 keepalived-build:
 	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
-	docker build . -f Dockerfile.keepalived -t $(REPO)/keepalived:$(KEEPALIVED_VERSION)
+	$(BUILDER) build -f Dockerfile.keepalived -t $(REPO)/keepalived:$(KEEPALIVED_VERSION) .
 
 haproxy-build:
 	@sed -e s/@VERSION@/$(HAPROXY_VERSION)/ Dockerfile.haproxy.in > Dockerfile.haproxy
-	docker build . -f Dockerfile.haproxy -t $(REPO)/haproxy:$(HAPROXY_VERSION)
+	$(BUILDER) build -f Dockerfile.haproxy -t $(REPO)/haproxy:$(HAPROXY_VERSION) .
 
 etcd-build:
 	@sed -e s/@VERSION@/$(ETCD_VERSION)/ Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
-	docker build . -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest
-	docker build . -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION)
+	$(BUILDER) build -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest .
+	$(BUILDER) build -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION) .
 
 kube-build:
 	@sed -e s/@VERSION@/$(KUBE_VERSION)/ Dockerfile.in > Dockerfile
-	docker build . -t $(REPO)/kubernetes-builder:latest
-	docker build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
-	docker build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
-	docker build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
-	docker build -f Dockerfile.kube-proxy -t $(REPO)/kube-proxy:$(KUBE_VERSION) .
+	$(BUILDER) build -f Dockerfile -t $(REPO)/kubernetes-builder:latest .
+	$(BUILDER) build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
+	$(BUILDER) build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
+	$(BUILDER) build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
+	$(BUILDER) build -f Dockerfile.kube-proxy -t $(REPO)/kube-proxy:$(KUBE_VERSION) .
 
 haproxy-push:
-	docker push $(REPO)/haproxy:$(HAPROXY_VERSION)
-	docker tag  $(REPO)/haproxy:$(HAPROXY_VERSION) $(REPO)/haproxy:latest
-	docker push $(REPO)/haproxy:latest
+	$(BUILDER) push $(REPO)/haproxy:$(HAPROXY_VERSION)
+	$(BUILDER) tag  $(REPO)/haproxy:$(HAPROXY_VERSION) $(REPO)/haproxy:latest
+	$(BUILDER) push $(REPO)/haproxy:latest
 
 keepalived-push:
-	docker push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
-	docker tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
-	docker push $(REPO)/keepalived:latest
+	$(BUILDER) push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
+	$(BUILDER) tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
+	$(BUILDER) push $(REPO)/keepalived:latest
 
 etcd-push:
-	docker push $(REPO)/etcd:$(ETCD_VERSION)
-	docker tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
-	docker push $(REPO)/etcd:latest
+	$(BUILDER) push $(REPO)/etcd:$(ETCD_VERSION)
+	$(BUILDER) tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
+	$(BUILDER) push $(REPO)/etcd:latest
 
 kube-push:
-	docker push $(REPO)/kube-apiserver:$(KUBE_VERSION)
-	docker tag  $(REPO)/kube-apiserver:$(KUBE_VERSION) $(REPO)/kube-apiserver:latest
-	docker push $(REPO)/kube-apiserver:latest
-	docker push $(REPO)/kube-scheduler:$(KUBE_VERSION)
-	docker tag  $(REPO)/kube-scheduler:$(KUBE_VERSION) $(REPO)/kube-scheduler:latest
-	docker push $(REPO)/kube-scheduler:latest
-	docker push $(REPO)/kube-proxy:$(KUBE_VERSION)
-	docker tag  $(REPO)/kube-proxy:$(KUBE_VERSION) $(REPO)/kube-proxy:latest
-	docker push $(REPO)/kube-proxy:latest
-	docker push $(REPO)/kube-controller-manager:$(KUBE_VERSION)
-	docker tag  $(REPO)/kube-controller-manager:$(KUBE_VERSION) $(REPO)/kube-controller-manager:latest
-	docker push $(REPO)/kube-controller-manager:latest
+	$(BUILDER) push $(REPO)/kube-apiserver:$(KUBE_VERSION)
+	$(BUILDER) tag  $(REPO)/kube-apiserver:$(KUBE_VERSION) $(REPO)/kube-apiserver:latest
+	$(BUILDER) push $(REPO)/kube-apiserver:latest
+	$(BUILDER) push $(REPO)/kube-scheduler:$(KUBE_VERSION)
+	$(BUILDER) tag  $(REPO)/kube-scheduler:$(KUBE_VERSION) $(REPO)/kube-scheduler:latest
+	$(BUILDER) push $(REPO)/kube-scheduler:latest
+	$(BUILDER) push $(REPO)/kube-proxy:$(KUBE_VERSION)
+	$(BUILDER) tag  $(REPO)/kube-proxy:$(KUBE_VERSION) $(REPO)/kube-proxy:latest
+	$(BUILDER) push $(REPO)/kube-proxy:latest
+	$(BUILDER) push $(REPO)/kube-controller-manager:$(KUBE_VERSION)
+	$(BUILDER) tag  $(REPO)/kube-controller-manager:$(KUBE_VERSION) $(REPO)/kube-controller-manager:latest
+	$(BUILDER) push $(REPO)/kube-controller-manager:latest
