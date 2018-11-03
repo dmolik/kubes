@@ -6,11 +6,12 @@ KUBE_VERSION=$(shell cat VERSION|grep KUBERNETES|sed -e 's/KUBERNETES[\ \t]*=[\ 
 ETCD_VERSION=$(shell cat VERSION|grep ETCD|sed -e 's/ETCD[\ \t]*=[\ \t]*//')
 KEEPALIVED_VERSION=$(shell cat VERSION|grep KEEPALIVED|sed -e 's/KEEPALIVED[\ \t]*=[\ \t]*//')
 STRONGSWAN_VERSION=$(shell cat VERSION|grep STRONGSWAN|sed -e 's/STRONGSWAN[\ \t]*=[\ \t]*//')
+FRR_VERSION=$(shell cat VERSION|grep FRR|sed -e 's/FRR[\ \t]*=[\ \t]*//')
 HAPROXY_VERSION=$(shell cat VERSION|grep HAPROXY|sed -e 's/HAPROXY[\ \t]*=[\ \t]*//')
 
 .PHONY: version
 
-all: kube etcd haproxy keepalived
+all: kube etcd haproxy keepalived strongswan frr
 
 version:
 	@echo "Pushing to Repo    = $(REPO)"
@@ -20,6 +21,7 @@ version:
 	@echo "Keepalived Version = $(KEEPALIVED_VERSION)"
 	@echo "Haproxy Version    = $(HAPROXY_VERSION)"
 	@echo "Strongswan Version = $(STRONGSWAN_VERSION)"
+	@echo "Frr Version        = $(FRR_VERSION)"
 	$(shell sed -i '' -e '/##\ VERSIONS/,$$d' README.md )
 	@echo "## VERSIONS" >> README.md
 	@echo >> README.md
@@ -28,32 +30,38 @@ version:
 	@echo "  - Keepalived: $(KEEPALIVED_VERSION)" >> README.md
 	@echo "  - Haproxy:    $(HAPROXY_VERSION)" >> README.md
 	@echo "  - Strongswan: $(STRONGSWAN_VERSION)" >> README.md
+	@echo "  - Frr:        $(FRR_VERSION)" >> README.md
 
 kube: kube-build kube-push
 etcd: etcd-build etcd-push
 haproxy: haproxy-build haproxy-push
 keepalived: keepalived-build keepalived-push
 strongswan: strongswan-build strongswan-push
+frr: frr-build frr-push
 
 strongswan-build:
-	@sed -e s/@VERSION@/$(STRONGSWAN_VERSION)/ Dockerfile.strongswan.in > Dockerfile.strongswan
+	@sed -e s/@VERSION@/$(STRONGSWAN_VERSION)/g Dockerfile.strongswan.in > Dockerfile.strongswan
 	$(BUILDER) build -f Dockerfile.strongswan -t $(REPO)/strongswan:$(STRONGSWAN_VERSION) .
 
+frr-build:
+	@sed -e s/@VERSION@/$(FRR_VERSION)/g Dockerfile.frr.in > Dockerfile.frr
+	$(BUILDER) build -f Dockerfile.frr -t $(REPO)/frr:$(FRR_VERSION) .
+
 keepalived-build:
-	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
+	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/g Dockerfile.keepalived.in > Dockerfile.keepalived
 	$(BUILDER) build -f Dockerfile.keepalived -t $(REPO)/keepalived:$(KEEPALIVED_VERSION) .
 
 haproxy-build:
-	@sed -e s/@VERSION@/$(HAPROXY_VERSION)/ Dockerfile.haproxy.in > Dockerfile.haproxy
+	@sed -e s/@VERSION@/$(HAPROXY_VERSION)/g Dockerfile.haproxy.in > Dockerfile.haproxy
 	$(BUILDER) build -f Dockerfile.haproxy -t $(REPO)/haproxy:$(HAPROXY_VERSION) .
 
 etcd-build:
-	@sed -e s/@VERSION@/$(ETCD_VERSION)/ Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
+	@sed -e s/@VERSION@/$(ETCD_VERSION)/g Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
 	$(BUILDER) build -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest .
 	$(BUILDER) build -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION) .
 
 kube-build:
-	@sed -e s/@VERSION@/$(KUBE_VERSION)/ Dockerfile.in > Dockerfile
+	@sed -e s/@VERSION@/$(KUBE_VERSION)/g Dockerfile.in > Dockerfile
 	$(BUILDER) build -f Dockerfile -t $(REPO)/kubernetes-builder:latest .
 	$(BUILDER) build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
 	$(BUILDER) build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
@@ -79,6 +87,11 @@ etcd-push:
 	$(BUILDER) push $(REPO)/etcd:$(ETCD_VERSION)
 	$(BUILDER) tag  $(REPO)/etcd:$(ETCD_VERSION) $(REPO)/etcd:latest
 	$(BUILDER) push $(REPO)/etcd:latest
+
+frr-push:
+	$(BUILDER) push $(REPO)/frr:$(FRR_VERSION)
+	$(BUILDER) tag  $(REPO)/frr:$(FRR_VERSION) $(REPO)/frr:latest
+	$(BUILDER) push $(REPO)/frr:latest
 
 kube-push:
 	$(BUILDER) push $(REPO)/kube-apiserver:$(KUBE_VERSION)
