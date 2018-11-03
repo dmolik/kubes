@@ -1,10 +1,11 @@
 
 REPO    ?= graytshirt
-BUILDER ?= img
+BUILDER ?= docker
 
 KUBE_VERSION=$(shell cat VERSION|grep KUBERNETES|sed -e 's/KUBERNETES[\ \t]*=[\ \t]*//' )
 ETCD_VERSION=$(shell cat VERSION|grep ETCD|sed -e 's/ETCD[\ \t]*=[\ \t]*//')
 KEEPALIVED_VERSION=$(shell cat VERSION|grep KEEPALIVED|sed -e 's/KEEPALIVED[\ \t]*=[\ \t]*//')
+STRONGSWAN_VERSION=$(shell cat VERSION|grep STRONGSWAN|sed -e 's/STRONGSWAN[\ \t]*=[\ \t]*//')
 HAPROXY_VERSION=$(shell cat VERSION|grep HAPROXY|sed -e 's/HAPROXY[\ \t]*=[\ \t]*//')
 
 .PHONY: version
@@ -18,6 +19,7 @@ version:
 	@echo "Etcd Version       = $(ETCD_VERSION)"
 	@echo "Keepalived Version = $(KEEPALIVED_VERSION)"
 	@echo "Haproxy Version    = $(HAPROXY_VERSION)"
+	@echo "Strongswan Version = $(STRONGSWAN_VERSION)"
 	$(shell sed -i '' -e '/##\ VERSIONS/,$$d' README.md )
 	@echo "## VERSIONS" >> README.md
 	@echo >> README.md
@@ -25,11 +27,17 @@ version:
 	@echo "  - Etcd:       $(ETCD_VERSION)" >> README.md
 	@echo "  - Keepalived: $(KEEPALIVED_VERSION)" >> README.md
 	@echo "  - Haproxy:    $(HAPROXY_VERSION)" >> README.md
+	@echo "  - Strongswan: $(STRONGSWAN_VERSION)" >> README.md
 
 kube: kube-build kube-push
 etcd: etcd-build etcd-push
 haproxy: haproxy-build haproxy-push
 keepalived: keepalived-build keepalived-push
+strongswan: strongswan-build strongswan-push
+
+strongswan-build:
+	@sed -e s/@VERSION@/$(STRONGSWAN_VERSION)/ Dockerfile.strongswan.in > Dockerfile.strongswan
+	$(BUILDER) build -f Dockerfile.strongswan -t $(REPO)/strongswan:$(STRONGSWAN_VERSION) .
 
 keepalived-build:
 	@sed -e s/@VERSION@/$(KEEPALIVED_VERSION)/ Dockerfile.keepalived.in > Dockerfile.keepalived
@@ -61,6 +69,11 @@ keepalived-push:
 	$(BUILDER) push $(REPO)/keepalived:$(KEEPALIVED_VERSION)
 	$(BUILDER) tag  $(REPO)/keepalived:$(KEEPALIVED_VERSION) $(REPO)/keepalived:latest
 	$(BUILDER) push $(REPO)/keepalived:latest
+
+strongswan-push:
+	$(BUILDER) push $(REPO)/strongswan:$(STRONGSWAN_VERSION)
+	$(BUILDER) tag  $(REPO)/strongswan:$(STRONGSWAN_VERSION) $(REPO)/strongswan:latest
+	$(BUILDER) push $(REPO)/strongswan:latest
 
 etcd-push:
 	$(BUILDER) push $(REPO)/etcd:$(ETCD_VERSION)

@@ -16,3 +16,4 @@ And the associated [Static Pod Manifests](docs/kubeconfigs/manifest.yml)
   - Etcd:       3.3.10
   - Keepalived: 2.0.8
   - Haproxy:    1.8.14
+  - Strongswan: 5.7.1
