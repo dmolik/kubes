@@ -14,7 +14,7 @@ And the associated [Static Pod Manifests](docs/kubeconfigs/manifest.yml)
 
   - Kubernetes: 1.12.2
   - Etcd:       3.3.10
-  - Keepalived: 2.0.8
+  - Keepalived: 2.0.9
   - Haproxy:    1.8.14
   - Strongswan: 5.7.1
   - Frr:        6.0
