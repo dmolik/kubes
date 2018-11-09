@@ -64,10 +64,10 @@ etcd-build:
 kube-build:
 	@sed -e s/@VERSION@/$(KUBE_VERSION)/g Dockerfile.in > Dockerfile
 	$(BUILDER) build -f Dockerfile -t $(REPO)/kubernetes-builder:latest .
-	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-controller-manager.in  > Dockerfile.kube-controller-manager
-	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-scheduler.in  > Dockerfile.kube-controller-manager
-	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-apiserver.in  > Dockerfile.kube-controller-manager
-	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-proxy.in  > Dockerfile.kube-controller-manager
+	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-controller-manager.in > Dockerfile.kube-controller-manager
+	@sed -e s/@REPO@/$(REPO)/g          Dockerfile.kube-scheduler.in > Dockerfile.kube-scheduler
+	@sed -e s/@REPO@/$(REPO)/g          Dockerfile.kube-apiserver.in > Dockerfile.kube-apiserver
+	@sed -e s/@REPO@/$(REPO)/g              Dockerfile.kube-proxy.in > Dockerfile.kube-proxy
 	$(BUILDER) build -f Dockerfile.kube-controller-manager -t $(REPO)/kube-controller-manager:$(KUBE_VERSION) .
 	$(BUILDER) build -f Dockerfile.kube-apiserver -t $(REPO)/kube-apiserver:$(KUBE_VERSION) .
 	$(BUILDER) build -f Dockerfile.kube-scheduler -t $(REPO)/kube-scheduler:$(KUBE_VERSION) .
