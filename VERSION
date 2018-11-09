@@ -1,6 +1,6 @@
 KUBERNETES =   1.12.2
 ETCD =         3.3.10
 STRONGSWAN =   5.7.1
-KEEPALIVED =   2.0.8
+KEEPALIVED =   2.0.9
 HAPROXY =      1.8.14
 FRR =          6.0
