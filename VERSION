@@ -1,3 +1,4 @@
+GO =           1.11.2
 KUBERNETES =   1.12.2
 ETCD =         3.3.10
 STRONGSWAN =   5.7.1

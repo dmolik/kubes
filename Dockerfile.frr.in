@@ -1,5 +1,8 @@
 FROM alpine:latest
 
+LABEL maintainer="Dan Molik <dan@danmolik.com> \
+	description="Free Range Routing Daemons on Alpine"
+
 RUN apk update \
 	apk upgrade \
 	&& apk add c-ares pcre pcre2 libnfnetlink json-c readline \

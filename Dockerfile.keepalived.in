@@ -1,5 +1,9 @@
 FROM alpine:latest
 
+LABEL maintainer="Dan Molik <dan@danmolik.com>" \
+	description.short="Keepalived @VERSION@ on Alpine" \
+	description.long="Built from https://github.com/whisperos/kube"
+
 RUN apk update \
 	&& apk upgrade \
 	&& apk add json-c openssl ipset iptables libnl3 libnfnetlink \

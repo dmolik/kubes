@@ -8,6 +8,7 @@ KEEPALIVED_VERSION=$(shell cat VERSION|grep KEEPALIVED|sed -e 's/KEEPALIVED[\ \t
 STRONGSWAN_VERSION=$(shell cat VERSION|grep STRONGSWAN|sed -e 's/STRONGSWAN[\ \t]*=[\ \t]*//')
 FRR_VERSION=$(shell cat VERSION|grep FRR|sed -e 's/FRR[\ \t]*=[\ \t]*//')
 HAPROXY_VERSION=$(shell cat VERSION|grep HAPROXY|sed -e 's/HAPROXY[\ \t]*=[\ \t]*//')
+GOVERSION=$(shell cat VERSION|grep GO|sed -e 's/GO[\ \t]*=[\ \t]*//')
 
 .PHONY: version
 
@@ -56,13 +57,17 @@ haproxy-build:
 	$(BUILDER) build -f Dockerfile.haproxy -t $(REPO)/haproxy:$(HAPROXY_VERSION) .
 
 etcd-build:
-	@sed -e s/@VERSION@/$(ETCD_VERSION)/g Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
+	@sed -e s/@VERSION@/$(ETCD_VERSION)/g \
+		 -e s/@GOVERSION@/$(GOVERSION)/g \
+		Dockerfile.etcd-builder.in > Dockerfile.etcd-builder
 	@sed -e s/@REPO@/$(REPO)/g Dockerfile.etcd.in  > Dockerfile.etcd
 	$(BUILDER) build -f Dockerfile.etcd-builder -t $(REPO)/etcd-builder:latest .
 	$(BUILDER) build -f Dockerfile.etcd -t $(REPO)/etcd:$(ETCD_VERSION) .
 
 kube-build:
-	@sed -e s/@VERSION@/$(KUBE_VERSION)/g Dockerfile.in > Dockerfile
+	@sed -e s/@VERSION@/$(KUBE_VERSION)/g \
+		 -e s/@GOVERSION@/$(GOVERSION)/g \
+		Dockerfile.in > Dockerfile
 	$(BUILDER) build -f Dockerfile -t $(REPO)/kubernetes-builder:latest .
 	@sed -e s/@REPO@/$(REPO)/g Dockerfile.kube-controller-manager.in > Dockerfile.kube-controller-manager
 	@sed -e s/@REPO@/$(REPO)/g          Dockerfile.kube-scheduler.in > Dockerfile.kube-scheduler
