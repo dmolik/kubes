@@ -1,42 +1,31 @@
-FROM alpine:latest
+FROM golang:1.11.2
 
-RUN apk update \
-	&& apk upgrade \
-	&& apk add json-c libressl ipset iptables libnl3 libnfnetlink libevent \
-		iproute2 gmp unbound-libs libldap ldns libcurl \
-	&& apk add --no-cache --virtual .build-dependencies \
-		gcc make musl-dev curl-dev curl json-c-dev libressl-dev linux-headers libtool \
-		autoconf automake ipset-dev iptables-dev libnl3-dev libnfnetlink-dev \
-		pkgconf libevent-dev flex bison gettext-dev gmp-dev file openldap-dev \
-		unbound-dev  ldns-dev \
-	&& mkdir /root/strongswan && cd /root/strongswan \
-	&& curl https://download.strongswan.org/strongswan-5.7.1.tar.gz | tar xz --strip-components=1 -C . \
-	&& autoreconf -i -f \
-	\
-	&& ./configure --prefix=/usr --sysconfdir=/etc --enable-connmark --enable-ha --enable-counters \
-		 --enable-swanctl --enable-ipsec2 --enable-gmp --enable-curl --enable-unbound --enable-ldap \
-		 --enable-socket-dynamic \
-		 --enable-sha3 --enable-aesni --enable-gcm \
-		 --enable-openssl \
-		 --enable-eap-identity \
-		 --enable-eap-mschapv2 \
-		 --enable-eap-radius \
-		 --enable-eap-tls \
-		 --enable-xauth-eap \
-		 --enable-eap-dynamic \
-	\
-	&& make -j4 \
-	&& make DESTDIR=/root/strongswan-release install \
-	&& find   /root/strongswan-release -path \*bin\* -type f -not -path \*sbin/ipsec | xargs strip \
-	&& find   /root/strongswan-release -name \*.so\* | xargs strip \
-	&& apk del .build-dependencies \
-	&& rm -rf /root/strongswan-release/usr/share \
-	&& rm -rf /root/strongswan-release/usr/man \
-	&& rm -rf /root/strongswan-release/usr/doc \
-	&& rm -rf /root/strongswan-release/usr/lib/ipsec/*.la \
-	&& rm -rf /root/strongswan-release/usr/lib/ipsec/plugins/*.la \
-	&& cp -R /root/strongswan-release/* / \
-	&& rm -rf /var/cache/apk/* \
-	&& rm -rf /root/strongswan && rm -rf /root/strongswan-release
+RUN mkdir -p /build
 
-# vi:syntax=dockerfile
+RUN cd $GOPATH  && apt-get update && apt-get install rsync -y \
+	&& mkdir -p src/k8s.io/kubernetes \
+	&& cd src/k8s.io/kubernetes \
+	&& curl -L https://github.com/kubernetes/kubernetes/archive/v1.12.2.tar.gz | tar xz --strip-components=1 -C .
+
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& sed -i -e "/vendor\/github.com\/jteeuwen\/go-bindata\/go-bindata/d" hack/lib/golang.sh \
+	&& sed -i -e "/export PATH/d" hack/generate-bindata.sh
+
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& LDFLAGS="" make WHAT=cmd/kube-controller-manager GOFLAGS=-v
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& LDFLAGS="" make WHAT=cmd/kube-apiserver GOFLAGS=-v
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& LDFLAGS="" make WHAT=cmd/kube-scheduler GOFLAGS=-v
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& LDFLAGS="" make WHAT=cmd/kube-proxy GOFLAGS=-v
+
+RUN cd $GOPATH/src/k8s.io/kubernetes \
+	&& cp _output/bin/kube-controller-manager /build \
+	&& cp _output/bin/kube-apiserver /build \
+	&& cp _output/bin/kube-scheduler /build \
+	&& cp _output/bin/kube-proxy /build \
+	&& strip /build/kube-apiserver \
+	&& strip /build/kube-scheduler \
+	&& strip /build/kube-controller-manager \
+	&& strip /build/kube-proxy
